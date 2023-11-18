@@ -34,19 +34,17 @@ export default {
     drawPlot(){
       d3.select(this.$refs.chartGroup)
         .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
+
+      this.drawXAxis();
+      this.drawYAxis();
+      this.drawRectangles();
+      this.drawDots();
     },
     drawXAxis() {
-      d3.select(this.$refs.axisX)
-        .attr('transform', `translate( 0, ${this.svgHeight - this.svgPadding.top - this.svgPadding.bottom} )`)
-        .call(d3.axisBottom(this.xScale))
-        .selectAll('text')
-        .attr('y', 0)
-        .attr('x', -7)
-        .attr('dy', '.35em')
-        .attr('transform', 'rotate(-90)')
-        .style('text-anchor', 'end');
+      // TODO: set xAxis according to the baDegreeOrHigher from store.js
     },
     drawYAxis() {
+      // yAxis is similar no changes needed
       d3.select(this.$refs.axisY)
         .call(d3.axisLeft(this.yScale))
         .append('text')
@@ -58,20 +56,11 @@ export default {
         .text("Average Yearly Personal Income (in $)");
     },
     drawRectangles(){
-      var bgRect = bg.selectAll('rect')
-            .data(d3.pairs(d3.merge([[y.domain()[0]], color.domain(), [y.domain()[1]]])))
-        bgRect.exit().remove()
-        bgRect.enter().append('rect')
-            .attr('x', 0)
-            .attr('width', width)
-            .merge(bgRect)
-            .attr('y', function (d) { return y(d[1]) })
-            .attr('height', function (d) { return y(d[0]) - y(d[1]) })
-            .style('fill', function (d) { return color(d[0]) })
+      // draw colorScaled rectangles based on the x,y of each data piece -> if x<? && y<? set color fill to colorScale[?]
 
     },
     drawDots() {
-      
+      // draw each dot representing a state with specific x=baDegreeOrHigher, y=personaleIncome
       var scatterPlot = d3.select(this.$refs.scatterPlot);
       scatterPlot.selectAll('.plot')
       .data()

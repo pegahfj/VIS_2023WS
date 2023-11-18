@@ -29,7 +29,7 @@ import YearSlider from './components/YearSlider.vue';
 export default {
   name: 'App',
   components: {
-    BarChart, ChoroplethMap, YearSlider
+    BarChart, ChoroplethMap, YearSlider, Scatterplot
   },
   mounted() {
     this.$store.dispatch('loadData');
