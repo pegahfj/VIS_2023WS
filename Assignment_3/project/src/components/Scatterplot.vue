@@ -37,11 +37,20 @@ export default {
 
       this.drawXAxis();
       this.drawYAxis();
-      this.drawRectangles();
+      // this.drawRectangles();
       this.drawDots();
     },
     drawXAxis() {
       // TODO: set xAxis according to the baDegreeOrHigher from store.js
+      d3.select(this.$refs.axisX)
+        .attr('transform', `translate( 0, ${this.svgHeight - this.svgPadding.top - this.svgPadding.bottom} )`)
+        .call(d3.axisBottom(this.xScale))
+        .append("text")
+        .attr("y", 0)
+        .attr("x", 10)
+        .attr("text-anchor", "end")
+        .attr("stroke", "black")
+        .text("BA-degree or higher")
     },
     drawYAxis() {
       // yAxis is similar no changes needed
@@ -61,9 +70,18 @@ export default {
     },
     drawDots() {
       // draw each dot representing a state with specific x=baDegreeOrHigher, y=personaleIncome
-      var scatterPlot = d3.select(this.$refs.scatterPlot);
-      scatterPlot.selectAll('.plot')
-      .data()
+      var circle = svg.selectAll('circle')
+            .data(this.personaleIncome)
+        circle.exit().remove()
+        circle.enter().append('circle')
+            .attr('r', 4)
+            .style('stroke', '#fff')
+            .merge(circle)
+            .attr('cx', (d) => this.xScale(d.state))
+            .attr('cy', (d) => this.yScale(d.value))
+            // .style('fill', function (d) { return color(d.obesity) })
+            // .style('opacity', function (d) { return d.filtered ? 0.5 : 1 })
+            // .style('stroke-width', function (d) { return d.filtered ? 1 : 2 })
     }
     // basic functionalities similar to prev assignment to load data and draw the diagram
     // drawXAxis, drawYAxis
@@ -89,21 +107,21 @@ export default {
         return this.$store.getters.colorScale;
       }
     },
-    dataMax() {
+    incomeMax() {
       return Math.max(d3.max(this.personaleIncome, (d) => d.value), 85000);
     },
-    dataMin() {
+    incomeMin() {
       return d3.min(this.personaleIncome, (d) => d.value);
     },
     xScale() {
-      return d3.scaleBand()
+      return d3.scaleLinear()
         .rangeRound([0, this.svgWidth - this.svgPadding.left - this.svgPadding.right]).padding(0.1)
-        .domain(this.personaleIncome.map((d) => d.state));
+        .domain([0, d3.max(this.baDegreeOrHigher, d=> { return d.value; })]);
     },
     yScale() {
       return d3.scaleLinear()
         .rangeRound([this.svgHeight - this.svgPadding.top - this.svgPadding.bottom, 0])
-        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax]);
+        .domain([this.incomeMin > 0 ? 0 : this.incomeMin, this.incomeMax]);
     },
   },
   watch: {
