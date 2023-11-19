@@ -8,8 +8,8 @@
       </div>
       <div class="row">
         <div class="col-md-5">
-          <BarChart/> 
-          <!-- <Scatterplot/>  -->
+          <!-- <BarChart/>  -->
+          <Scatterplot/> 
 
         </div>
         <div class="col-md-7">
@@ -21,15 +21,18 @@
 </template>
 
 <script>
-import BarChart from './components/BarChart.vue';
-// import Scatterplot from './components/BarChart.vue';
+// import BarChart from './components/BarChart.vue';
+import Scatterplot from './components/Scatterplot.vue';
 import ChoroplethMap from './components/ChoroplethMap.vue';
 import YearSlider from './components/YearSlider.vue';
 
 export default {
   name: 'App',
   components: {
-    BarChart, ChoroplethMap, YearSlider, Scatterplot
+    // BarChart, 
+    ChoroplethMap, 
+    YearSlider, 
+    Scatterplot
   },
   mounted() {
     this.$store.dispatch('loadData');

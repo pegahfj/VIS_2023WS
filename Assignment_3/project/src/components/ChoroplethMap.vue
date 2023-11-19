@@ -7,9 +7,11 @@
     <!-- <div>
       <l-geo-json url="asset/us-states-geo.json"  ref="geolayer"></l-geo-json>
     </div> -->
-    <svg class="main-svg" :width="svgWidth" :height="svgHeight">
+    <!-- <svg class="main-svg" :width="svgWidth" :height="svgHeight">
       <g class="chart-group" ref="chartGroup"></g>
-    </svg>
+    </svg> -->
+    <div ref="choropleth"></div>
+
   </div>
 </template>
 
@@ -24,7 +26,7 @@ export default {
   },
   data() {
     return {
-      svgWidth: 500,
+      svgWidth: 700,
       svgHeight: 500,
       svgPadding: {
         top: 20, right: 20, bottom: 20, left: 20,
@@ -38,8 +40,21 @@ export default {
     console.log(mapStatesUSA);
   },
   methods: {
-    // use albersusa map projection to draw the map
     drawMap(mapStatesUSA){
+      const colorScale = d3.scaleQuantize()
+        .range(['#3b4994' , '#8c62aa','#be64ac', '#5698b9',
+    '#a5add3', '#dfb0d6', '#5ac8c8', '#ace4e4', '#e8e8e8']);
+      
+      const normalize = (value, min, max) => (value - min) / (max - min);
+      const incomeExtent = d3.extent(this.mapData, d => d.income);
+      const educationExtent = d3.extent(this.mapData, d => d.degree);
+      
+      colorScale.domain([
+        normalize(incomeExtent[0], incomeExtent[0], incomeExtent[1]),
+        normalize(incomeExtent[1], incomeExtent[0], incomeExtent[1]),
+        normalize(educationExtent[0], educationExtent[0], educationExtent[1]),
+        normalize(educationExtent[1], educationExtent[0], educationExtent[1]),
+      ]);
       // if (this.$refs.map) this.svgWidth = this.$refs.map.clientWidth;
       d3.select(this.$refs.chartGroup)
         .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
@@ -50,33 +65,29 @@ export default {
 
       var path = d3.geoPath().projection(projection)
       
-      // var colorScale = d3.scaleOrdinal().range(this.colorScale);
-      console.log(this.colorScale)
      
-      var svg = d3.select('#map')
+      var svg = d3.select(this.$refs.choropleth)
           .append('svg')
           .attr('width', this.svgWidth)
           .attr('height', this.svgHeight)
 
-          // paths -> shape of each state 
-          // features-> our mapStateUSa more or less
 
       svg.selectAll('path')
           .data(mapStatesUSA.features) 
           .enter().append('path')
           .attr('d', path)
-          .attr('fill', "3b4994")
-          .on('mouseover', function() {
-    d3.select(this).style('stroke', 'red');
-  }).on('mouseout', function() {
-    d3.select(this).style('stroke', 'black');
-  });
+          .data(this.mapData)
+          .attr('fill',  d => {
+            // console.log("path d "+d.income)
+            // console.log("path d "+d.degree)
+            return colorScale(normalize(d.income, incomeExtent[0], incomeExtent[1]), normalize(d.degree, educationExtent[0], educationExtent[1]));
+          });
+      //     .on('mouseover', function() {
+      //   d3.select(this).style('stroke', 'red');
+      // }).on('mouseout', function() {
+      //   d3.select(this).style('stroke', 'black');
+      // });
 
-      // return function update(data) {
-      //     svg.selectAll('path')
-      //         .data(data, function (d) { return d.name || d.properties.name })
-      //         .style('fill', function (d) { return d.filtered ? '#ddd' : color(d.obesity) })
-      // }
     }
   },
   computed: {
@@ -95,8 +106,8 @@ export default {
         return this.$store.getters.selectedStates;
       }
     },
-    colorScale() {
-      return this.$store.getters.colorScale;
+    mapData() {
+      return this.$store.getters.mapData;
     },
   },
   watch: {

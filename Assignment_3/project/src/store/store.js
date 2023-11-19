@@ -43,7 +43,7 @@ const store = new Vuex.Store({
         if (state.selectedYear in state.baDegreeOrHigher[i]) {
           result.push({
             state: state.baDegreeOrHigher[i].State,
-            value: state.baDegreeOrHigher[i][state.selectedYear]
+            value: +state.baDegreeOrHigher[i][state.selectedYear]
           })
         }
       }
@@ -52,6 +52,21 @@ const store = new Vuex.Store({
     colorScale (state) {
       return state.colorScale;   
     },
+    mapData (state) {
+      var formattedData = [];
+      for (let i = 0; i < state.baDegreeOrHigher.length; i++) {
+        if (state.selectedYear in state.baDegreeOrHigher[i]) {
+            var entry = {"state": state.baDegreeOrHigher[i].State,
+             "income": +state.personaleIncome[i][state.selectedYear],
+              "degree": +state.baDegreeOrHigher[i][state.selectedYear]} 
+              // console.log(entry)
+
+            formattedData.push(entry);
+        }
+      }
+      return formattedData;   
+    },
+
   },
   actions: {
     loadData({state}) {
