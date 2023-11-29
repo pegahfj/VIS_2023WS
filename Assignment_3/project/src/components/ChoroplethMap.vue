@@ -35,56 +35,66 @@ export default {
   },
   mounted() {
     // Use the following map geoJSON object ("mapStatesUSA") for your projection
-    this.drawMap(mapStatesUSA);
-    console.log("mapStatesUSA: ");
-    console.log(mapStatesUSA);
+    this.drawMap();
   },
   methods: {
-    drawMap(mapStatesUSA){
+    handleFillColor(d) {
       const colorScale = d3.scaleQuantize()
-        .range(['#3b4994' , '#8c62aa','#be64ac', '#5698b9',
-    '#a5add3', '#dfb0d6', '#5ac8c8', '#ace4e4', '#e8e8e8']);
-      
+        .range(['#3b4994', '#8c62aa', '#be64ac', '#5698b9',
+          '#a5add3', '#dfb0d6', '#5ac8c8', '#ace4e4', '#e8e8e8']);
       const normalize = (value, min, max) => (value - min) / (max - min);
       const incomeExtent = d3.extent(this.mapData, d => d.income);
       const educationExtent = d3.extent(this.mapData, d => d.degree);
-      
+
       colorScale.domain([
         normalize(incomeExtent[0], incomeExtent[0], incomeExtent[1]),
         normalize(incomeExtent[1], incomeExtent[0], incomeExtent[1]),
         normalize(educationExtent[0], educationExtent[0], educationExtent[1]),
         normalize(educationExtent[1], educationExtent[0], educationExtent[1]),
       ]);
-      // if (this.$refs.map) this.svgWidth = this.$refs.map.clientWidth;
-      d3.select(this.$refs.chartGroup)
-        .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
-   
-      var projection = d3.geoAlbersUsa()
-          .scale([this.svgWidth * 1.25])
-          .translate([this.svgWidth / 2, this.svgHeight / 2])
+      return colorScale(normalize(d.income, incomeExtent[0], incomeExtent[1]), normalize(d.degree, educationExtent[0], educationExtent[1]));
 
-      var path = d3.geoPath().projection(projection)
-      
-     
-      var svg = d3.select(this.$refs.choropleth)
+    },
+    drawMap() {
+      if (this.mapData.length === 0) return;
+      // if (this.$refs.map) this.svgWidth = this.$refs.map.clientWidth;
+      // d3.select(this.$refs.chartGroup)
+      //   .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
+
+      const projection = d3.geoAlbersUsa()
+        .scale([this.svgWidth * 1.25])
+        .translate([this.svgWidth / 2, this.svgHeight / 2])
+
+      const path = d3.geoPath().projection(projection)
+
+
+      let svg = d3.select(this.$refs.choropleth).select('svg');
+
+      // If the 'svg' element does not exist, append a new one
+      if (svg.empty()) {
+        svg = d3.select(this.$refs.choropleth)
           .append('svg')
           .attr('width', this.svgWidth)
-          .attr('height', this.svgHeight)
+          .attr('height', this.svgHeight);
+      }
 
+      let paths = svg.selectAll('path')
+        .data(mapStatesUSA.features);
+      
+      paths.exit().remove();
+     
+      paths.attr('d', path)
+      .data(this.mapData)
+      .attr('fill', this.handleFillColor);
 
-      svg.selectAll('path')
-          .data(mapStatesUSA.features) 
-          .enter().append('path')
-          .attr('d', path)
-          .data(this.mapData)
-          .attr('fill',  d => {
-            // console.log("path d "+d.income)
-            // console.log("path d "+d.degree)
-            return colorScale(normalize(d.income, incomeExtent[0], incomeExtent[1]), normalize(d.degree, educationExtent[0], educationExtent[1]));
-          });
-      //     .on('mouseover', function() {
+      
+      paths.enter().append('path')
+        .attr('d', path)
+        .data(this.mapData)
+        .attr('fill', this.handleFillColor)
+      // .on('mouseover', function () {
       //   d3.select(this).style('stroke', 'red');
-      // }).on('mouseout', function() {
+      // }).on('mouseout', function () {
       //   d3.select(this).style('stroke', 'black');
       // });
 
@@ -106,14 +116,21 @@ export default {
         return this.$store.getters.selectedStates;
       }
     },
-    mapData() {
-      return this.$store.getters.mapData;
+    mapData: {
+      get() {
+        return this.$store.getters.mapData;
+      }
     },
   },
   watch: {
+    mapData: {
+      handler() {
+        this.drawMap();
+      },
+      deep: true,
+    },
   },
 }
 </script>
 
-<style>
-</style>
+<style></style>

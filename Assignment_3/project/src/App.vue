@@ -31,7 +31,7 @@ export default {
   components: {
     // BarChart, 
     ChoroplethMap, 
-    YearSlider, 
+    YearSlider,
     Scatterplot
   },
   mounted() {

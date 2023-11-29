@@ -56,12 +56,18 @@ const store = new Vuex.Store({
       var formattedData = [];
       for (let i = 0; i < state.baDegreeOrHigher.length; i++) {
         if (state.selectedYear in state.baDegreeOrHigher[i]) {
-            var entry = {"state": state.baDegreeOrHigher[i].State,
-             "income": +state.personaleIncome[i][state.selectedYear],
-              "degree": +state.baDegreeOrHigher[i][state.selectedYear]} 
-              // console.log(entry)
+          formattedData.push({
+            state: state.baDegreeOrHigher[i].State,
+            income: +state.personaleIncome[i][state.selectedYear],
+            degree: +state.baDegreeOrHigher[i][state.selectedYear]
+          })
+            // var entry = {
+            //   "state": state.baDegreeOrHigher[i].State,
+            //  "income": +state.personaleIncome[i][state.selectedYear],
+            //   "degree": +state.baDegreeOrHigher[i][state.selectedYear]} 
+            //   // console.log(entry)
 
-            formattedData.push(entry);
+            // formattedData.push(entry);
         }
       }
       return formattedData;   
