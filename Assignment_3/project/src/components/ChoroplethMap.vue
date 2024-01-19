@@ -1,15 +1,5 @@
 <template>
   <div class="vis-component" ref="map">
-    <div class="placeholder">
-      <b>Here comes the choropleth map</b>.
-      <p>Selected states by clicking on the bar chart: {{ selectedStates }}</p>
-    </div>
-    <!-- <div>
-      <l-geo-json url="asset/us-states-geo.json"  ref="geolayer"></l-geo-json>
-    </div> -->
-    <!-- <svg class="main-svg" :width="svgWidth" :height="svgHeight">
-      <g class="chart-group" ref="chartGroup"></g>
-    </svg> -->
     <div ref="choropleth"></div>
 
   </div>
@@ -46,14 +36,15 @@ export default {
       const incomeExtent = d3.extent(this.mapData, d => d.income);
       const educationExtent = d3.extent(this.mapData, d => d.degree);
 
-      colorScale.domain([
-        normalize(incomeExtent[0], incomeExtent[0], incomeExtent[1]),
-        normalize(incomeExtent[1], incomeExtent[0], incomeExtent[1]),
-        normalize(educationExtent[0], educationExtent[0], educationExtent[1]),
-        normalize(educationExtent[1], educationExtent[0], educationExtent[1]),
-      ]);
-      return colorScale(normalize(d.income, incomeExtent[0], incomeExtent[1]), normalize(d.degree, educationExtent[0], educationExtent[1]));
+      const normalizedIncome = normalize(d.income, incomeExtent[0], incomeExtent[1]);
+      const normalizedEducation = normalize(d.degree, educationExtent[0], educationExtent[1]);
 
+      // Calculate the average of the normalized values
+      const average = (normalizedIncome + normalizedEducation) / 2;
+
+      // Use the color scale to map the average to a color
+      colorScale.domain([0, 1]);
+      return colorScale(average);
     },
     drawMap() {
       if (this.mapData.length === 0) return;

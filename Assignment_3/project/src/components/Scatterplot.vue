@@ -26,29 +26,12 @@ export default {
     }
   },
   mounted() {
-    this.$refs.scatterPlot.style.width = this.width + 'px';
-    this.$refs.scatterPlot.style.height = this.height + 'px';
+    
     this.drawScatterPlot();
 
   },
   methods: {
-    // handleFillColor(d) {
-    //   const colorScale = d3.scaleQuantize()
-    //     .range(['#3b4994', '#8c62aa', '#be64ac', '#5698b9',
-    //       '#a5add3', '#dfb0d6', '#5ac8c8', '#ace4e4', '#e8e8e8']);
-    //   const normalize = (value, min, max) => (value - min) / (max - min);
-    //   const incomeExtent = d3.extent(this.mapData, d => d.income);
-    //   const educationExtent = d3.extent(this.mapData, d => d.degree);
-
-    //   colorScale.domain([
-    //     normalize(incomeExtent[0], incomeExtent[0], incomeExtent[1]),
-    //     normalize(incomeExtent[1], incomeExtent[0], incomeExtent[1]),
-    //     normalize(educationExtent[0], educationExtent[0], educationExtent[1]),
-    //     normalize(educationExtent[1], educationExtent[0], educationExtent[1]),
-    //   ]);
-    //   return colorScale(normalize(d.income, incomeExtent[0], incomeExtent[1]), normalize(d.degree, educationExtent[0], educationExtent[1]));
-
-    // },
+  
     handleFillColor(i) {
       const colorScale = d3.scaleQuantize()
       .domain([0, 8])
@@ -59,24 +42,29 @@ export default {
     
     drawScatterPlot(){
       if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
-      var diagram = d3.select(this.$refs.scatterPlot)
+      
+      d3.select(this.$refs.scatterPlot)
       .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
-
-
-      // .attr("width", this.svgWidth)
-      // .attr("height", this.svgHeight)
-      // .attr('transform', `translate(${this.svgPadding.left},${this.svgPadding.top})`);
-        
+      
+      this.drawXAxis();
+      this.drawYAxis();
+      this.drawRectangles();
+      this.drawCircles();  
+    },
+    drawXAxis() {
       var height = this.svgHeight - this.svgPadding.top - this.svgPadding.bottom;
+
       d3.select(this.$refs.axisX)
       .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(this.xScale))
         .append('text')
-        .attr('y', 10)
-        .attr('x', 0)
+        .attr('y', -10)
+        .attr('x', 370)
         .style('text-anchor', 'end')
-        .text("Year");
- 
+        .attr('fill', 'black')
+        .text("Educational attainment BA or higher (%)");
+    },
+    drawYAxis() {
       d3.select(this.$refs.axisY)
         .call(d3.axisLeft(this.yScale))
         .append('text')
@@ -86,7 +74,9 @@ export default {
         .attr('text-anchor', 'end') 
         .attr('fill', 'black')
         .text("Average Yearly Personal Income (in $)");
-   
+    },
+    drawRectangles() {
+      var diagram = d3.select(this.$refs.scatterPlot)
 
       let rectangleWidth = (this.svgWidth - this.svgPadding.left - this.svgPadding.right) / 3;
       let rectangleHeight = (this.svgHeight - this.svgPadding.top - this.svgPadding.bottom) / 3;
@@ -107,31 +97,64 @@ export default {
         return {income: totalIncome / part.length, degree: totalDegree / part.length};
       });
 
-        diagram.selectAll('rect')
-        .data(averages)
-        .enter().append('rect')
-        .attr('x', (_, i) => (i % 3) * rectangleWidth) // Adjust rectangle position
-        .attr('y', (_, i) => Math.floor(i / 3) * rectangleHeight) // Adjust rectangle position
-        .attr('width', rectangleWidth) // Adjust rectangle size
-        .attr('height', rectangleHeight) // Adjust rectangle size
-        .attr('fill', (_, i) => this.handleFillColor(i)) // Adjust fill color based on index
-        .attr('opacity', 0.7); // Adjust rectangle opacity
-      
-        diagram.selectAll('circle')
+      diagram.selectAll('rect')
+      .data(averages)
+      .enter().append('rect')
+      .attr('x', (_, i) => (i % 3) * rectangleWidth) // Adjust rectangle position
+      .attr('y', (_, i) => Math.floor(i / 3) * rectangleHeight) // Adjust rectangle position
+      .attr('width', rectangleWidth) // Adjust rectangle size
+      .attr('height', rectangleHeight) // Adjust rectangle size
+      .attr('fill', (_, i) => this.handleFillColor(i)) // Adjust fill color based on index
+      .attr('opacity', 0.7); // Adjust rectangle opacity
+    
+    },
+    drawCircles() {
+      var diagram = d3.select(this.$refs.scatterPlot)
+
+      diagram.selectAll('circle').remove();
+
+      diagram.selectAll('circle')
         .data(this.mapData)
         .enter().append('circle')
-        .attr('cx', d => this.xScale(d.degree))
-        .attr('cy', d => this.yScale(d.income))
+        .attr('cx', d => {
+          return this.xScale(d.degree);
+        })
+        .attr('cy', d => {
+          return this.yScale(d.income);
+        })
         .attr('r', 3)
         .style('fill','black')
-        // .on('mouseover', function() {
-        //   d3.select(this).style('stroke', 'red');
-        // })
-        // .on('mouseout', function() {
-        //   d3.select(this).style('stroke', 'black');
-        // });
+        .on('mouseover', (event, d) => this.handleMouseOver(event, d));
+    },
+    handleMouseOver(event, d) {
+
+      // this.$store.commit('changeSelectedState', d.state);
+
+      d3.select(".tooltip").remove();
+
+      // Append a new tooltip to the body
+      let tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+      // Show the tooltip with the state name
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", 10);
+        
+      tooltip.html(d.state)
+        .style('color', '#c51b8a')
+        .style('font-size', '16px') // Change '16px' to the size you want
+        .style("left", (event.pageX) + "px")
+        .style("top", (event.pageY - 28) + "px");
+
+      // Hide the tooltip when the mouse leaves the bar
+      d3.select(event.target).on("mouseout", function() {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+      });   
     }
-   
   },
   computed: {
     personaleIncome: {
@@ -143,6 +166,11 @@ export default {
     baDegreeOrHigher: {
       get() {
         return this.$store.getters.baDegreeOrHigher;
+      }
+    },
+    selectedYear: {
+      get() {
+        return this.$store.getters.selectedYear;
       }
     },
     mapData: {
