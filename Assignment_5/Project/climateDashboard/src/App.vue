@@ -10,9 +10,9 @@
         <div class="col-md-5">
           <BarChart/>
         </div>
-        <!-- <div class="col-md-7">
+        <div class="col-md-7">
           <ChoroplethMap/>
-        </div> -->
+        </div>
       </div>
     </div>
   </div>
@@ -20,14 +20,14 @@
 
 <script>
 import BarChart from './components/BarChart.vue';
-// import ChoroplethMap from './components/ChoroplethMap.vue';
+import ChoroplethMap from './components/ChoroplethMap.vue';
 import YearSlider from './components/YearSlider.vue';
 
 export default {
   name: 'App',
   components: {
     BarChart, 
-    // ChoroplethMap, 
+    ChoroplethMap, 
     YearSlider
   },
   mounted() {
